@@ -1,0 +1,65 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.1.0'
+    }
+}
+
+apply plugin: 'com.android.application'
+
+String userDir = System.getProperty("user.dir")
+String localProperties = userDir + "/local.properties"
+FileInputStream localPropsFs
+try {
+    localPropsFs = new FileInputStream(localProperties)
+} catch (Exception e) {
+    throw new GradleException("Please create a " + localProperties + " file!")
+}
+Properties localProps = new Properties()
+localProps.load(localPropsFs)
+String androidNdkDir = localProps.getProperty('ndk.dir')
+if(androidNdkDir == null) {
+    throw new GradleException("Please create a define ndk.dir property in " + localProperties + " file!")
+}
+
+android {
+    compileSdkVersion 22
+    buildToolsVersion "22"
+
+    defaultConfig {
+        applicationId "test.photopay.api"
+        minSdkVersion 10
+        targetSdkVersion 22
+    }
+
+    buildTypes {
+        debug {
+            jniDebuggable true
+        }
+        release {
+            minifyEnabled true
+        }
+    }
+
+    sourceSets.main {
+        // prevent automatic generation of Android.mk
+        jni.srcDirs = []
+        jniLibs.srcDir 'src/main/libs'
+    }
+}
+
+task compileNdk(type: Exec) {
+    commandLine "$androidNdkDir/ndk-build", '-C', file('src/main/jni').absolutePath, 'NDK_DEBUG=1'
+}
+
+task cleanNdk(type: Exec) {
+    commandLine "$androidNdkDir/ndk-build", '-C', file('src/main/jni').absolutePath, 'clean'
+}
+
+tasks.withType(JavaCompile) { task ->
+    task.dependsOn(compileNdk)
+}
+
+tasks.clean.dependsOn(cleanNdk)

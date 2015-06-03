@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">RecognizerApi Demo</string>
+    <string name="scan">Scan</string>
+    <string name="takePhoto">Take Photo</string>
+
+</resources>
